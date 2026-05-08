@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>모음 학습</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  min-height:100vh;
+  background: linear-gradient(135deg, #f8e8f0 0%, #e8f0fb 50%, #f0e8f8 100%);
+  padding: 20px;
+}
+
+/* 메인 컨테이너 */
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  background: rgba(255,255,255,0.92);
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+  padding: 30px 24px 36px;
+}
+
+/* 타이틀 */
+.title {
+  text-align: center;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #d63384;
+  margin-bottom: 4px;
+}
+.star-count {
+  text-align: center;
+  font-size: 1.1rem;
+  color: #e6a817;
+  font-weight: 700;
+  margin-bottom: 18px;
+}
+
+/* 그룹 선택 */
+.group-selector {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.group-btn {
+  padding: 8px 18px;
+  border-radius: 20px;
+  border: 2px solid #d63384;
+  background: #fff;
+  color: #d63384;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.group-btn.active {
+  background: #d63384;
+  color: #fff;
+}
+
+/* 탭 버튼 */
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.tab-btn {
+  padding: 10px 20px;
+  border-radius: 24px;
+  border: 2px solid #ccc;
+  background: #fff;
+  color: #555;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.tab-btn.active {
+  background: #7c3aed;
+  color: #fff;
+  border-color: #7c3aed;
+}
+.tab-btn:hover:not(.active) {
+  border-color: #7c3aed;
+  color: #7c3aed;
+}
+
+/* 모음 선택 버튼 */
+.vowel-selector {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+.vowel-btn {
+  width: 64px; height: 64px;
+  border-radius: 14px;
+  border: 2px solid #ddd;
+  background: #fff;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.vowel-btn.active {
+  background: #ffd600;
+  border-color: #f9a825;
+  color: #333;
+  transform: scale(1.05);
+}
+
+/* ====== 1단계: 보고 듣기 ====== */
+.stage1-area { text-align: center; }
+.stage1-emoji { font-size: 5rem; margin-bottom: 8px; }
+.stage1-letter {
+  font-size: 14rem;
+  font-weight: 900;
+  color: #5b21b6;
+  line-height: 1.1;
+  margin-bottom: 0;
+}
+.stage1-word {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #333;
+  margin-bottom: 20px;
+}
+.stage1-word .highlight {
+  color: #d63384;
+}
+.listen-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 40px;
+  border-radius: 40px;
+  border: none;
+  background: #16a34a;
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.listen-btn:hover { background: #15803d; }
+
+/* ====== 2단계: 따라쓰기 ====== */
+.stage2-area { text-align: center; }
+.page-info {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #7c3aed;
+  margin-bottom: 12px;
+}
+.canvas-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.canvas-cell {
+  position: relative;
+  border: 2px solid #ddd;
+  border-radius: 14px;
+  background: #fafafa;
+  aspect-ratio: 1;
+  overflow: hidden;
+}
+.canvas-cell .cell-num {
+  position: absolute;
+  top: 6px; left: 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #aaa;
+  z-index: 2;
+}
+.canvas-cell .cell-clear {
+  position: absolute;
+  top: 4px; right: 6px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #ccc;
+  cursor: pointer;
+  z-index: 2;
+  background: none;
+  border: none;
+  line-height: 1;
+}
+.canvas-cell .cell-clear:hover { color: #e53e3e; }
+.canvas-cell canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.canvas-cell.done {
+  border-color: #16a34a;
+  background: #f0fdf4;
+}
+.page-nav {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+.page-nav button {
+  padding: 10px 28px;
+  border-radius: 30px;
+  border: none;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.nav-prev, .nav-next {
+  background: #7c3aed;
+  color: #fff;
+}
+.nav-prev:disabled, .nav-next:disabled {
+  background: #ddd;
+  color: #aaa;
+  cursor: default;
+}
+.nav-clear {
+  background: #f59e0b;
+  color: #fff;
+}
+.page-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+.page-dots .dot {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: #ddd;
+  transition: all 0.2s;
+}
+.page-dots .dot.current { background: #7c3aed; transform: scale(1.2); }
+.page-dots .dot.completed { background: #16a34a; }
+
+/* ====== 3단계: 같은 모양 찾기 ====== */
+.stage3-area { text-align: center; }
+.quiz-prompt {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #555;
+  margin-bottom: 16px;
+}
+.quiz-target {
+  font-size: 10rem;
+  font-weight: 900;
+  color: #5b21b6;
+  line-height: 1.1;
+  margin-bottom: 24px;
+}
+.quiz-options {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.quiz-option {
+  width: 120px; height: 120px;
+  border-radius: 20px;
+  border: 3px solid #ddd;
+  background: #fff;
+  font-size: 4rem;
+  font-weight: 900;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.quiz-option:hover { border-color: #7c3aed; transform: scale(1.05); }
+.quiz-option.correct {
+  border-color: #16a34a;
+  background: #f0fdf4;
+  color: #16a34a;
+  animation: pop 0.4s;
+}
+.quiz-option.wrong {
+  border-color: #e53e3e;
+  background: #fef2f2;
+  color: #e53e3e;
+  animation: shake 0.4s;
+}
+.quiz-feedback {
+  font-size: 1.5rem;
+  font-weight: 800;
+  min-height: 50px;
+  margin-bottom: 10px;
+}
+.next-quiz-btn {
+  padding: 12px 36px;
+  border-radius: 30px;
+  border: none;
+  background: #7c3aed;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: none;
+}
+
+/* ====== 4단계: 소리 듣고 찾기 ====== */
+.stage4-area { text-align: center; }
+.sound-icon {
+  font-size: 5rem;
+  margin-bottom: 16px;
+}
+.replay-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 32px;
+  border-radius: 30px;
+  border: none;
+  background: #16a34a;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-bottom: 24px;
+}
+
+/* ====== 5단계: 기억하기 ====== */
+.stage5-area { text-align: center; }
+.memory-display {
+  font-size: 12rem;
+  font-weight: 900;
+  color: #5b21b6;
+  line-height: 1.1;
+  min-height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+.memory-msg {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #7c3aed;
+  margin-bottom: 20px;
+  min-height: 40px;
+}
+.hint-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 32px;
+  border-radius: 30px;
+  border: 2px solid #f59e0b;
+  background: #fffbeb;
+  color: #b45309;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-bottom: 16px;
+  transition: all 0.2s;
+}
+.hint-btn:hover { background: #fef3c7; }
+.start-memory-btn {
+  padding: 14px 40px;
+  border-radius: 30px;
+  border: none;
+  background: #7c3aed;
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* 애니메이션 */
+@keyframes pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  25% { transform: translateX(-8px); }
+  75% { transform: translateX(8px); }
+}
+@keyframes starPop {
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.4); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.star-anim {
+  display: inline-block;
+  animation: starPop 0.5s ease-out;
+  font-size: 3rem;
+  position: fixed;
+  top: 40%; left: 50%;
+  transform: translate(-50%,-50%);
+  z-index: 999;
+  pointer-events: none;
+}
+
+/* 숨기기 */
+.hidden { display: none !important; }
+
+/* 반응형 */
+@media (max-width: 600px) {
+  .container { padding: 18px 10px 24px; }
+  .title { font-size: 1.3rem; }
+  .tabs { gap: 4px; }
+  .tab-btn { padding: 8px 10px; font-size: 0.8rem; }
+  .vowel-btn { width: 50px; height: 50px; font-size: 1.4rem; }
+  .stage1-letter { font-size: 8rem; }
+  .canvas-grid { grid-template-columns: repeat(2, 1fr); }
+  .quiz-target { font-size: 6rem; }
+  .quiz-option { width: 90px; height: 90px; font-size: 3rem; }
+  .memory-display { font-size: 8rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- 타이틀 -->
+  <div class="title" id="mainTitle">🌸 모음 학습 ㅏ ㅓ ㅗ ㅜ 🌸</div>
+  <div class="star-count">⭐ 모은 별: <span id="starCount">0</span> 개</div>
+
+  <!-- 그룹 선택 -->
+  <div class="group-selector">
+    <button class="group-btn active" onclick="setGroup('basic')">기본 ㅏㅓㅗㅜ</button>
+    <button class="group-btn" onclick="setGroup('extended')">확장 ㅑㅕㅛㅠ</button>
+    <button class="group-btn" onclick="setGroup('all')">전체 8개</button>
+  </div>
+
+  <!-- 탭 -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="setTab(0)">① 보고 듣기</button>
+    <button class="tab-btn" onclick="setTab(1)">② 따라 쓰기</button>
+    <button class="tab-btn" onclick="setTab(2)">③ 같은 모양 찾기</button>
+    <button class="tab-btn" onclick="setTab(3)">④ 소리 듣고 찾기</button>
+    <button class="tab-btn" onclick="setTab(4)">⑤ 기억해서 찾기</button>
+  </div>
+
+  <!-- 모음 선택 -->
+  <div class="vowel-selector" id="vowelSelector"></div>
+
+  <!-- 스테이지 영역 -->
+  <div id="stageContainer">
+    <!-- 1단계: 보고 듣기 -->
+    <div class="stage1-area" id="stage0">
+      <div class="stage1-emoji" id="s1Emoji"></div>
+      <div class="stage1-letter" id="s1Letter"></div>
+      <div class="stage1-word" id="s1Word"></div>
+      <button class="listen-btn" onclick="speakCurrent()">🔊 다시 듣기</button>
+    </div>
+
+    <!-- 2단계: 따라 쓰기 -->
+    <div class="stage2-area hidden" id="stage1">
+      <div class="page-info" id="pageInfo">1 / 5 쪽</div>
+      <div class="canvas-grid" id="canvasGrid"></div>
+      <div class="page-nav">
+        <button class="nav-prev" id="prevBtn" onclick="changePage(-1)">◀ 이전</button>
+        <button class="nav-clear" onclick="clearCurrentPage()">🧹 지우기</button>
+        <button class="nav-next" id="nextBtn" onclick="changePage(1)">다음 ▶</button>
+      </div>
+      <div class="page-dots" id="pageDots"></div>
+    </div>
+
+    <!-- 3단계: 같은 모양 찾기 -->
+    <div class="stage3-area hidden" id="stage2">
+      <div class="quiz-prompt">아래와 같은 모양을 찾아보세요!</div>
+      <div class="quiz-target" id="quizTarget"></div>
+      <div class="quiz-options" id="quizOptions"></div>
+      <div class="quiz-feedback" id="quizFeedback"></div>
+      <button class="next-quiz-btn" id="nextQuizBtn" onclick="genQuiz3()">다음 문제 ▶</button>
+    </div>
+
+    <!-- 4단계: 소리 듣고 찾기 -->
+    <div class="stage4-area hidden" id="stage3">
+      <div class="sound-icon">🔊</div>
+      <div class="quiz-prompt">소리를 잘 듣고 찾아보세요!</div>
+      <button class="replay-btn" onclick="replayStage4()">🔊 다시 듣기</button>
+      <div class="quiz-options" id="quizOptions4"></div>
+      <div class="quiz-feedback" id="quizFeedback4"></div>
+      <button class="next-quiz-btn" id="nextQuizBtn4" onclick="genQuiz4()">다음 문제 ▶</button>
+    </div>
+
+    <!-- 5단계: 기억하기 -->
+    <div class="stage5-area hidden" id="stage4">
+      <div class="memory-display" id="memoryDisplay"></div>
+      <div class="memory-msg" id="memoryMsg"></div>
+      <button class="hint-btn hidden" id="hintBtn" onclick="playHint()">💡 힌트 (소리 듣기)</button>
+      <div class="quiz-options hidden" id="quizOptions5"></div>
+      <div class="quiz-feedback" id="quizFeedback5"></div>
+      <button class="start-memory-btn" id="startMemoryBtn" onclick="startMemory()">시작하기 ▶</button>
+      <button class="next-quiz-btn" id="nextQuizBtn5" onclick="startMemory()">다음 문제 ▶</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== 데이터 =====
+const ALL_VOWELS = {
+  'ㅏ': {name:'아', emoji:'👨', word:'아빠', hlIdx:0},
+  'ㅓ': {name:'어', emoji:'👩', word:'어머니', hlIdx:0},
+  'ㅗ': {name:'오', emoji:'🦆', word:'오리', hlIdx:0},
+  'ㅜ': {name:'우', emoji:'☂️', word:'우산', hlIdx:0},
+  'ㅑ': {name:'야', emoji:'⚾', word:'야구', hlIdx:0},
+  'ㅕ': {name:'여', emoji:'🦊', word:'여우', hlIdx:0},
+  'ㅛ': {name:'요', emoji:'🍳', word:'요리', hlIdx:0},
+  'ㅠ': {name:'유', emoji:'🥛', word:'우유', hlIdx:1}
+};
+
+const GROUPS = {
+  basic: ['ㅏ','ㅓ','ㅗ','ㅜ'],
+  extended: ['ㅑ','ㅕ','ㅛ','ㅠ'],
+  all: ['ㅏ','ㅓ','ㅗ','ㅜ','ㅑ','ㅕ','ㅛ','ㅠ']
+};
+
+const GROUP_TITLES = {
+  basic: '🌸 모음 학습 ㅏ ㅓ ㅗ ㅜ 🌸',
+  extended: '🌸 모음 학습 ㅑ ㅕ ㅛ ㅠ 🌸',
+  all: '🌸 모음 학습 전체 8개 🌸'
+};
+
+// ===== 상태 =====
+let currentGroup = 'basic';
+let currentVowels = GROUPS.basic;
+let currentVowelIdx = 0;
+let currentTab = 0;
+let stars = parseInt(localStorage.getItem('vowelStars')||'0');
+let currentPage = 0;
+const TOTAL_PAGES = 5;
+const CELLS_PER_PAGE = 4;
+let canvasDataStore = {};
+let stage4Answer = null;
+let stage5Answer = null;
+
+// ===== 초기화 =====
+document.getElementById('starCount').textContent = stars;
+
+function setGroup(g) {
+  currentGroup = g;
+  currentVowels = GROUPS[g];
+  currentVowelIdx = 0;
+  document.getElementById('mainTitle').textContent = GROUP_TITLES[g];
+  document.querySelectorAll('.group-btn').forEach((b,i) => {
+    b.classList.toggle('active', 
+      (g==='basic'&&i===0)||(g==='extended'&&i===1)||(g==='all'&&i===2));
+  });
+  canvasDataStore = {};
+  buildVowelSelector();
+  updateStage();
+}
+
+function setTab(t) {
+  currentTab = t;
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', i===t));
+  for(let i=0;i<5;i++) document.getElementById('stage'+i).classList.toggle('hidden', i!==t);
+  updateStage();
+}
+
+function buildVowelSelector() {
+  const sel = document.getElementById('vowelSelector');
+  sel.innerHTML = '';
+  currentVowels.forEach((v,i) => {
+    const btn = document.createElement('button');
+    btn.className = 'vowel-btn' + (i===currentVowelIdx?' active':'');
+    btn.textContent = v;
+    btn.onclick = () => { currentVowelIdx=i; buildVowelSelector(); updateStage(); };
+    sel.appendChild(btn);
+  });
+}
+
+function getV() { return currentVowels[currentVowelIdx]; }
+function getD() { return ALL_VOWELS[getV()]; }
+
+// ===== TTS =====
+function speak(text, rate=0.65, cb) {
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang='ko-KR'; u.rate=rate; u.pitch=1;
+  if(cb) u.onend=cb;
+  window.speechSynthesis.speak(u);
+}
+
+function speakCurrent() {
+  const d = getD();
+  speak(d.name, 0.6);
+}
+
+function speakRepeat(text, times, delay, cb) {
+  let count=0;
+  function go() {
+    if(count>=times){if(cb)cb();return;}
+    speak(text,0.6, ()=>{ count++; setTimeout(go,delay); });
+  }
+  go();
+}
+
+// ===== 별 =====
+function addStar() {
+  stars++;
+  localStorage.setItem('vowelStars', stars);
+  document.getElementById('starCount').textContent = stars;
+  const s = document.createElement('div');
+  s.className='star-anim'; s.textContent='⭐';
+  document.body.appendChild(s);
+  setTimeout(()=>s.remove(),700);
+}
+
+// ===== 스테이지 업데이트 =====
+function updateStage() {
+  if(currentTab===0) updateStage1();
+  else if(currentTab===1) updateStage2();
+  else if(currentTab===2) genQuiz3();
+  else if(currentTab===3) genQuiz4();
+  else if(currentTab===4) resetStage5();
+}
+
+// ===== 1단계: 보고 듣기 =====
+function updateStage1() {
+  const v=getV(), d=getD();
+  document.getElementById('s1Emoji').textContent = d.emoji;
+  document.getElementById('s1Letter').textContent = v;
+  const wordEl = document.getElementById('s1Word');
+  const chars = d.word.split('');
+  wordEl.innerHTML = chars.map((c,i) => 
+    i===d.hlIdx ? '<span class="highlight">'+c+'</span>' : c
+  ).join('');
+  speakRepeat(d.name, 3, 300);
+}
+
+// ===== 2단계: 따라쓰기 =====
+function updateStage2() {
+  currentPage = 0;
+  buildCanvasPage();
+}
+
+function getStoreKey(vowelIdx, page, cell) {
+  return currentGroup+'_'+vowelIdx+'_'+page+'_'+cell;
+}
+
+function buildCanvasPage() {
+  const grid = document.getElementById('canvasGrid');
+  grid.innerHTML='';
+  const v = getV();
+  for(let c=0;c<CELLS_PER_PAGE;c++) {
+    const globalNum = currentPage*CELLS_PER_PAGE + c + 1;
+    const cell = document.createElement('div');
+    cell.className = 'canvas-cell';
+    cell.innerHTML = '<span class="cell-num">'+globalNum+'</span><button class="cell-clear" data-c="'+c+'">✕</button>';
+    const cvs = document.createElement('canvas');
+    cvs.width=300; cvs.height=300;
+    cvs.dataset.cell = c;
+    cell.appendChild(cvs);
+    grid.appendChild(cell);
+
+    const ctx = cvs.getContext('2d');
+    drawGuide(ctx, v);
+
+    // 복원
+    const key = getStoreKey(currentVowelIdx, currentPage, c);
+    if(canvasDataStore[key]) {
+      const img = new Image();
+      img.onload=()=>ctx.drawImage(img,0,0);
+      img.src=canvasDataStore[key];
+      cell.classList.add('done');
+    }
+
+    // 이벤트
+    let drawing=false, pts=0;
+    function getPos(e) {
+      const r=cvs.getBoundingClientRect();
+      const t=e.touches?e.touches[0]:e;
+      return { x:(t.clientX-r.left)*(300/r.width), y:(t.clientY-r.top)*(300/r.height) };
+    }
+    function startDraw(e) {
+      e.preventDefault();
+      drawing=true; pts=0;
+      const p=getPos(e);
+      ctx.beginPath(); ctx.moveTo(p.x,p.y);
+      ctx.strokeStyle='#333'; ctx.lineWidth=6; ctx.lineCap='round'; ctx.lineJoin='round';
+    }
+    function moveDraw(e) {
+      if(!drawing)return;
+      e.preventDefault();
+      pts++;
+      const p=getPos(e);
+      ctx.lineTo(p.x,p.y); ctx.stroke();
+    }
+    function endDraw(e) {
+      if(!drawing)return;
+      drawing=false;
+      if(pts>=3) {
+        speak(getD().name, 0.6);
+        cell.classList.add('done');
+        canvasDataStore[getStoreKey(currentVowelIdx,currentPage,c)] = cvs.toDataURL();
+      }
+    }
+    cvs.addEventListener('mousedown',startDraw);
+    cvs.addEventListener('mousemove',moveDraw);
+    cvs.addEventListener('mouseup',endDraw);
+    cvs.addEventListener('mouseleave',()=>{if(drawing)endDraw();});
+    cvs.addEventListener('touchstart',startDraw,{passive:false});
+    cvs.addEventListener('touchmove',moveDraw,{passive:false});
+    cvs.addEventListener('touchend',endDraw);
+
+    // 칸 지우기
+    cell.querySelector('.cell-clear').onclick = function() {
+      const ci = parseInt(this.dataset.c);
+      const canvas = grid.querySelectorAll('canvas')[ci];
+      const context = canvas.getContext('2d');
+      context.clearRect(0,0,300,300);
+      drawGuide(context, v);
+      cell.classList.remove('done');
+      delete canvasDataStore[getStoreKey(currentVowelIdx,currentPage,ci)];
+    };
+  }
+  updatePageUI();
+}
+
+function drawGuide(ctx, v) {
+  // 십자 보조선
+  ctx.strokeStyle='#e0e0e0'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(150,0); ctx.lineTo(150,300); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0,150); ctx.lineTo(300,150); ctx.stroke();
+  // 가이드 글자
+  ctx.fillStyle='rgba(0,0,0,0.07)';
+  ctx.font='900 220px sans-serif';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(v,150,155);
+}
+
+function changePage(dir) {
+  currentPage = Math.max(0, Math.min(TOTAL_PAGES-1, currentPage+dir));
+  buildCanvasPage();
+  if(dir>0) speak(getD().name, 0.6);
+}
+
+function clearCurrentPage() {
+  for(let c=0;c<CELLS_PER_PAGE;c++) {
+    delete canvasDataStore[getStoreKey(currentVowelIdx,currentPage,c)];
+  }
+  buildCanvasPage();
+}
+
+function updatePageUI() {
+  document.getElementById('pageInfo').textContent = (currentPage+1)+' / '+TOTAL_PAGES+' 쪽';
+  document.getElementById('prevBtn').disabled = currentPage===0;
+  document.getElementById('nextBtn').disabled = currentPage===TOTAL_PAGES-1;
+  const dots = document.getElementById('pageDots');
+  dots.innerHTML='';
+  for(let i=0;i<TOTAL_PAGES;i++) {
+    const d=document.createElement('div');
+    d.className='dot';
+    if(i===currentPage) d.classList.add('current');
+    // 해당 쪽에 그린 게 있으면 completed
+    let hasData=false;
+    for(let c=0;c<CELLS_PER_PAGE;c++) {
+      if(canvasDataStore[getStoreKey(currentVowelIdx,i,c)]) hasData=true;
+    }
+    if(hasData && i!==currentPage) d.classList.add('completed');
+    dots.appendChild(d);
+  }
+}
+
+// ===== 3단계: 같은 모양 찾기 =====
+function genQuiz3() {
+  const v=getV();
+  document.getElementById('quizTarget').textContent = v;
+  document.getElementById('quizFeedback').textContent='';
+  document.getElementById('nextQuizBtn').style.display='none';
+  const opts = document.getElementById('quizOptions');
+  opts.innerHTML='';
+
+  // 오답 후보
+  const others = currentVowels.filter(x=>x!==v);
+  const wrong = others[Math.floor(Math.random()*others.length)];
+  const choices = Math.random()<0.5 ? [v,wrong] : [wrong,v];
+
+  choices.forEach(ch => {
+    const btn = document.createElement('button');
+    btn.className='quiz-option';
+    btn.textContent=ch;
+    btn.onclick = () => handleQuiz3(btn,ch,v);
+    opts.appendChild(btn);
+  });
+  speak(ALL_VOWELS[v].name, 0.6);
+}
+
+function handleQuiz3(btn,chosen,answer) {
+  const fb = document.getElementById('quizFeedback');
+  if(chosen===answer) {
+    btn.classList.add('correct');
+    fb.innerHTML='🎉 <span style="color:#16a34a">정답이에요! 잘했어요!</span>';
+    speak('참 잘했어요',0.8);
+    addStar();
+    document.getElementById('nextQuizBtn').style.display='inline-block';
+  } else {
+    btn.classList.add('wrong');
+    fb.innerHTML='🤔 <span style="color:#e53e3e">다시 한번 찾아보세요!</span>';
+    speak('다시 한번 찾아보세요',0.8);
+  }
+}
+
+// ===== 4단계: 소리 듣고 찾기 =====
+function genQuiz4() {
+  const v=getV();
+  stage4Answer = v;
+  document.getElementById('quizFeedback4').textContent='';
+  document.getElementById('nextQuizBtn4').style.display='none';
+  const opts = document.getElementById('quizOptions4');
+  opts.innerHTML='';
+
+  const others = currentVowels.filter(x=>x!==v);
+  const wrong = others[Math.floor(Math.random()*others.length)];
+  const choices = Math.random()<0.5 ? [v,wrong] : [wrong,v];
+
+  choices.forEach(ch => {
+    const btn = document.createElement('button');
+    btn.className='quiz-option';
+    btn.textContent=ch;
+    btn.onclick = () => handleQuiz4(btn,ch);
+    opts.appendChild(btn);
+  });
+
+  // 발음 2회
+  speakRepeat(ALL_VOWELS[v].name, 2, 400);
+}
+
+function replayStage4() {
+  if(stage4Answer) speakRepeat(ALL_VOWELS[stage4Answer].name, 2, 400);
+}
+
+function handleQuiz4(btn,chosen) {
+  const fb = document.getElementById('quizFeedback4');
+  if(chosen===stage4Answer) {
+    btn.classList.add('correct');
+    fb.innerHTML='🎉 <span style="color:#16a34a">정답이에요! 잘했어요!</span>';
+    speak('참 잘했어요',0.8);
+    addStar();
+    document.getElementById('nextQuizBtn4').style.display='inline-block';
+  } else {
+    btn.classList.add('wrong');
+    fb.innerHTML='🤔 <span style="color:#e53e3e">다시 들어보세요!</span>';
+    speak('다시 한번 들어보세요',0.8, ()=> {
+      setTimeout(()=>replayStage4(),500);
+    });
+  }
+}
+
+// ===== 5단계: 기억하기 =====
+function resetStage5() {
+  document.getElementById('memoryDisplay').textContent='🧠';
+  document.getElementById('memoryMsg').textContent='시작 버튼을 누르세요!';
+  document.getElementById('quizOptions5').classList.add('hidden');
+  document.getElementById('hintBtn').classList.add('hidden');
+  document.getElementById('quizFeedback5').textContent='';
+  document.getElementById('startMemoryBtn').style.display='inline-block';
+  document.getElementById('nextQuizBtn5').style.display='none';
+}
+
+function startMemory() {
+  const v=getV();
+  stage5Answer = v;
+  document.getElementById('quizFeedback5').textContent='';
+  document.getElementById('startMemoryBtn').style.display='none';
+  document.getElementById('nextQuizBtn5').style.display='none';
+  document.getElementById('quizOptions5').classList.add('hidden');
+  document.getElementById('hintBtn').classList.add('hidden');
+
+  // 3초간 보여주기
+  const disp = document.getElementById('memoryDisplay');
+  disp.textContent = v;
+  disp.style.color = '#5b21b6';
+  document.getElementById('memoryMsg').textContent='잘 보세요! 3...';
+  speak(ALL_VOWELS[v].name, 0.6);
+
+  let count=3;
+  const timer = setInterval(()=>{
+    count--;
+    if(count>0) {
+      document.getElementById('memoryMsg').textContent='잘 보세요! '+count+'...';
+    } else {
+      clearInterval(timer);
+      disp.textContent='❓';
+      disp.style.color='#ccc';
+      document.getElementById('memoryMsg').textContent='방금 본 모음을 찾아보세요!';
+      showMemoryOptions();
+    }
+  },1000);
+}
+
+function showMemoryOptions() {
+  const v = stage5Answer;
+  const opts = document.getElementById('quizOptions5');
+  opts.classList.remove('hidden');
+  opts.innerHTML='';
+  document.getElementById('hintBtn').classList.remove('hidden');
+
+  const others = currentVowels.filter(x=>x!==v);
+  const wrong = others[Math.floor(Math.random()*others.length)];
+  const choices = Math.random()<0.5 ? [v,wrong] : [wrong,v];
+
+  choices.forEach(ch => {
+    const btn = document.createElement('button');
+    btn.className='quiz-option';
+    btn.textContent=ch;
+    btn.onclick = () => handleQuiz5(btn,ch);
+    opts.appendChild(btn);
+  });
+}
+
+function playHint() {
+  if(stage5Answer) speak(ALL_VOWELS[stage5Answer].name, 0.6);
+}
+
+function handleQuiz5(btn,chosen) {
+  const fb = document.getElementById('quizFeedback5');
+  if(chosen===stage5Answer) {
+    btn.classList.add('correct');
+    fb.innerHTML='🎉 <span style="color:#16a34a">정답이에요! 기억력이 좋아요!</span>';
+    speak('참 잘했어요',0.8);
+    addStar();
+    document.getElementById('hintBtn').classList.add('hidden');
+    document.getElementById('nextQuizBtn5').style.display='inline-block';
+    document.getElementById('memoryDisplay').textContent = stage5Answer;
+    document.getElementById('memoryDisplay').style.color = '#16a34a';
+  } else {
+    btn.classList.add('wrong');
+    fb.innerHTML='🤔 <span style="color:#e53e3e">힌트를 눌러 보세요!</span>';
+    speak('힌트를 눌러보세요',0.8);
+    setTimeout(()=>btn.classList.remove('wrong'),600);
+  }
+}
+
+// ===== 초기 실행 =====
+buildVowelSelector();
+updateStage();
+</script>
+
+</body>
+</html>
